@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -12,4 +6,82 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String       @id @default(cuid())
+  name          String
+  email         String       @unique
+  passwordHash  String
+  role          Role         @default(USER)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  profile       Profile?
+  challenges    UserChallenge[]
+  logs          LogEntry[]
+  reflections   Reflection[]
+}
+
+model Profile {
+  id        String @id @default(cuid())
+  userId    String @unique
+  bio       String?
+  avatarUrl String?
+  theme     String? // "light" | "dark"
+  user      User    @relation(fields: [userId], references: [id])
+}
+
+model Challenge {
+  id          String           @id @default(cuid())
+  title       String
+  description String
+  level       Int
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  users       UserChallenge[]
+}
+
+model UserChallenge {
+  id           String     @id @default(cuid())
+  userId       String
+  challengeId  String
+  status       ChallengeStatus @default(PENDING)
+  startedAt    DateTime? 
+  completedAt  DateTime?
+
+  user         User       @relation(fields: [userId], references: [id])
+  challenge    Challenge  @relation(fields: [challengeId], references: [id])
+}
+
+model LogEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Reflection {
+  id        String   @id @default(cuid())
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ChallengeStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
 }
