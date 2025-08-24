@@ -1,6 +1,7 @@
+// schema.prisma
+
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -30,6 +31,35 @@ model Profile {
   avatarUrl String?
   theme     String? // "light" | "dark"
   user      User    @relation(fields: [userId], references: [id])
+}
+
+model Book {
+  id          String         @id @default(cuid())
+  title       String
+  author      String?
+  description String?
+  createdAt   DateTime       @default(now())
+
+  affirmations Affirmation[]
+}
+
+model Affirmation {
+  id        String   @id @default(cuid())
+  text      String
+  bookId    String
+  createdAt DateTime @default(now())
+
+  book      Book     @relation(fields: [bookId], references: [id])
+}
+
+model Meditation {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  script      String?     // guion de la meditación
+  audioUrl    String?     // enlace a mp3 si existe
+  duration    Int?        // en minutos
+  createdAt   DateTime @default(now())
 }
 
 model Challenge {
